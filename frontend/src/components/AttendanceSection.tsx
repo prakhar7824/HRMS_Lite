@@ -20,6 +20,8 @@ export default function AttendanceSection() {
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [filterEmployee, setFilterEmployee] = useState<string>("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [form, setForm] = useState({ employee_id: "", date: "", status: "Present" as "Present" | "Absent" });
 
   const { data: employees = [] } = useQuery({
@@ -28,14 +30,19 @@ export default function AttendanceSection() {
   });
 
   const { data: attendance = [], isLoading, error } = useQuery({
-    queryKey: ["attendance", filterEmployee],
-    queryFn: () => fetchAttendance(filterEmployee === "all" ? undefined : filterEmployee),
+    queryKey: ["attendance", filterEmployee, dateFrom, dateTo],
+    queryFn: () =>
+      fetchAttendance(filterEmployee === "all" ? undefined : filterEmployee, {
+        ...(dateFrom && { dateFrom }),
+        ...(dateTo && { dateTo }),
+      }),
   });
 
   const addMutation = useMutation({
     mutationFn: createAttendance,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["attendance"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       setForm({ employee_id: "", date: "", status: "Present" });
       setShowForm(false);
       toast.success("Attendance recorded");
@@ -69,7 +76,7 @@ export default function AttendanceSection() {
             <p className="text-sm text-muted-foreground">{attendance.length} records</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Select value={filterEmployee} onValueChange={setFilterEmployee}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Filter by employee" />
@@ -83,6 +90,22 @@ export default function AttendanceSection() {
               ))}
             </SelectContent>
           </Select>
+          <div className="flex items-center gap-1">
+            <Input
+              type="date"
+              placeholder="From"
+              className="w-[140px]"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+            />
+            <Input
+              type="date"
+              placeholder="To"
+              className="w-[140px]"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+            />
+          </div>
           <Button onClick={() => setShowForm(!showForm)} size="sm" className="gap-2">
             <Plus className="h-4 w-4" />
             Log Attendance

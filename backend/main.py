@@ -133,10 +133,19 @@ def delete_employee(employee_id: str, db=Depends(get_supabase)):
 
 # --- Attendance ---
 @app.get("/api/attendance", response_model=list[AttendanceResponse])
-def list_attendance(employee_id: str | None = Query(None), db=Depends(get_supabase)):
+def list_attendance(
+    employee_id: str | None = Query(None),
+    date_from: str | None = Query(None, description="Filter from date (YYYY-MM-DD)"),
+    date_to: str | None = Query(None, description="Filter to date (YYYY-MM-DD)"),
+    db=Depends(get_supabase),
+):
     q = db.table("attendances").select("*").order("date", desc=True)
     if employee_id:
         q = q.eq("employee_id", employee_id)
+    if date_from:
+        q = q.gte("date", date_from)
+    if date_to:
+        q = q.lte("date", date_to)
     r = q.execute()
     return [AttendanceResponse(**x) for x in (r.data or [])]
 
@@ -166,3 +175,35 @@ def mark_attendance(body: AttendanceCreate, db=Depends(get_supabase)):
     row = dict(ins.data[0])
     row["date"] = body.date
     return AttendanceResponse(**row)
+
+
+# --- Dashboard (summary + counts) ---
+@app.get("/api/dashboard")
+def get_dashboard(db=Depends(get_supabase)):
+    """Returns total counts and present days per employee for dashboard summary."""
+    employees_r = db.table("employees").select("id, full_name").order("id").execute()
+    employees = employees_r.data or []
+    attendance_r = db.table("attendances").select("employee_id, status").execute()
+    attendance = attendance_r.data or []
+
+    present_count_by_employee: dict[str, int] = {}
+    for row in attendance:
+        if row.get("status") == "Present":
+            eid = row.get("employee_id")
+            if eid:
+                present_count_by_employee[eid] = present_count_by_employee.get(eid, 0) + 1
+
+    present_days_by_employee = [
+        {
+            "employee_id": emp["id"],
+            "full_name": emp["full_name"],
+            "present_days": present_count_by_employee.get(emp["id"], 0),
+        }
+        for emp in employees
+    ]
+
+    return {
+        "total_employees": len(employees),
+        "total_attendance_records": len(attendance),
+        "present_days_by_employee": present_days_by_employee,
+    }

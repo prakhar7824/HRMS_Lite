@@ -15,3 +15,15 @@ export interface AttendanceRecord {
 export interface ApiError {
   detail: string;
 }
+
+export interface PresentDaysRow {
+  employee_id: string;
+  full_name: string;
+  present_days: number;
+}
+
+export interface DashboardSummary {
+  total_employees: number;
+  total_attendance_records: number;
+  present_days_by_employee: PresentDaysRow[];
+}

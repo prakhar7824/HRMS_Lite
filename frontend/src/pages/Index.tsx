@@ -2,10 +2,11 @@ import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import EmployeeSection from "@/components/EmployeeSection";
 import AttendanceSection from "@/components/AttendanceSection";
-import { Users, CalendarCheck, Building2 } from "lucide-react";
+import DashboardSection from "@/components/DashboardSection";
+import { Users, CalendarCheck, Building2, LayoutDashboard } from "lucide-react";
 
 const Index = () => {
-  const [tab, setTab] = useState("employees");
+  const [tab, setTab] = useState("dashboard");
 
   return (
     <div className="min-h-screen bg-background">
@@ -25,7 +26,11 @@ const Index = () => {
       {/* Main */}
       <main className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
         <Tabs value={tab} onValueChange={setTab}>
-          <TabsList className="mb-6 grid w-full max-w-md grid-cols-2">
+          <TabsList className="mb-6 grid w-full max-w-lg grid-cols-3">
+            <TabsTrigger value="dashboard" className="gap-2">
+              <LayoutDashboard className="h-4 w-4" />
+              Dashboard
+            </TabsTrigger>
             <TabsTrigger value="employees" className="gap-2">
               <Users className="h-4 w-4" />
               Employees
@@ -35,6 +40,9 @@ const Index = () => {
               Attendance
             </TabsTrigger>
           </TabsList>
+          <TabsContent value="dashboard">
+            <DashboardSection />
+          </TabsContent>
           <TabsContent value="employees">
             <EmployeeSection />
           </TabsContent>

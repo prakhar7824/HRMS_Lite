@@ -35,6 +35,7 @@ export default function EmployeeSection() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["employees"] });
       queryClient.invalidateQueries({ queryKey: ["attendance"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       setForm({ id: "", full_name: "", email: "", department: "" });
       setShowForm(false);
       toast.success("Employee added successfully");
@@ -46,6 +47,7 @@ export default function EmployeeSection() {
     mutationFn: deleteEmployee,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["employees"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       toast.success("Employee deleted");
     },
     onError: (err: Error) => toast.error(err.message),

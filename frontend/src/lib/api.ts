@@ -1,4 +1,4 @@
-import type { Employee, AttendanceRecord, ApiError } from "@/types/hrms";
+import type { Employee, AttendanceRecord, ApiError, DashboardSummary } from "@/types/hrms";
 
 const BASE_URL = (import.meta.env.VITE_API_URL || "http://localhost:8000").replace(/\/$/, "");
 
@@ -34,10 +34,16 @@ export async function deleteEmployee(id: string): Promise<void> {
 }
 
 // Attendance
-export async function fetchAttendance(employeeId?: string): Promise<AttendanceRecord[]> {
-  const url = employeeId
-    ? `${BASE_URL}/api/attendance?employee_id=${encodeURIComponent(employeeId)}`
-    : `${BASE_URL}/api/attendance`;
+export async function fetchAttendance(
+  employeeId?: string,
+  options?: { dateFrom?: string; dateTo?: string }
+): Promise<AttendanceRecord[]> {
+  const params = new URLSearchParams();
+  if (employeeId) params.set("employee_id", employeeId);
+  if (options?.dateFrom) params.set("date_from", options.dateFrom);
+  if (options?.dateTo) params.set("date_to", options.dateTo);
+  const qs = params.toString();
+  const url = qs ? `${BASE_URL}/api/attendance?${qs}` : `${BASE_URL}/api/attendance`;
   const res = await fetch(url);
   return handleResponse<AttendanceRecord[]>(res);
 }
@@ -58,4 +64,10 @@ export async function createAttendance(data: {
     body: JSON.stringify(data),
   });
   return handleResponse<AttendanceRecord>(res);
+}
+
+// Dashboard
+export async function fetchDashboard(): Promise<DashboardSummary> {
+  const res = await fetch(`${BASE_URL}/api/dashboard`);
+  return handleResponse<DashboardSummary>(res);
 }
