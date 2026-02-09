@@ -7,6 +7,8 @@ from functools import lru_cache
 
 from fastapi import Depends, FastAPI, HTTPException, Query, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel, EmailStr, Field
 from pydantic_settings import BaseSettings
 from supabase import create_client
@@ -73,6 +75,24 @@ app = FastAPI(title="HRMS Lite API", version="1.0.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
 
+@app.exception_handler(RequestValidationError)
+def validation_exception_handler(_request, exc: RequestValidationError):
+    """Return a single detail string for validation errors (e.g. invalid email) so the frontend can show it clearly."""
+    errors = exc.errors()
+    if errors:
+        msg = errors[0].get("msg", "Validation error")
+        loc = errors[0].get("loc", [])
+        if "email" in loc and "email" in str(msg).lower():
+            msg = "Please provide a valid email address."
+        elif "body" in loc and len(loc) > 1:
+            field = loc[-1]
+            if field == "email":
+                msg = "Please provide a valid email address."
+    else:
+        msg = "Validation error"
+    return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content={"detail": msg})
+
+
 @app.get("/")
 def root():
     return {"message": "HRMS Lite API", "docs": "/docs"}
@@ -131,6 +151,11 @@ def get_attendance_by_employee(employee_id: str, db=Depends(get_supabase)):
 
 @app.post("/api/attendance", response_model=AttendanceResponse, status_code=status.HTTP_201_CREATED)
 def mark_attendance(body: AttendanceCreate, db=Depends(get_supabase)):
+    if body.date > date.today():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot mark attendance for a future date.",
+        )
     if not db.table("employees").select("id").eq("id", body.employee_id).execute().data:
         raise HTTPException(status_code=404, detail="Employee not found.")
     payload = body.model_dump()
