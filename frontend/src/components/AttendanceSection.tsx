@@ -76,39 +76,50 @@ export default function AttendanceSection() {
             <p className="text-sm text-muted-foreground">{attendance.length} records</p>
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Select value={filterEmployee} onValueChange={setFilterEmployee}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filter by employee" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Employees</SelectItem>
-              {employees.map((emp) => (
-                <SelectItem key={emp.id} value={emp.id}>
-                  {emp.full_name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <div className="flex items-center gap-1">
-            <Input
-              type="date"
-              placeholder="From"
-              className="w-[140px]"
-              value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
-            />
-            <Input
-              type="date"
-              placeholder="To"
-              className="w-[140px]"
-              value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
-            />
+        <div className="flex flex-wrap items-end gap-4">
+          <div className="flex flex-col gap-1">
+            <Label className="text-xs text-muted-foreground whitespace-nowrap">Employee</Label>
+            <Select value={filterEmployee} onValueChange={setFilterEmployee}>
+              <SelectTrigger className="h-9 w-[160px]">
+                <SelectValue placeholder="All employees" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Employees</SelectItem>
+                {employees.map((emp) => (
+                  <SelectItem key={emp.id} value={emp.id}>
+                    {emp.full_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-          <Button onClick={() => setShowForm(!showForm)} size="sm" className="gap-2">
-            <Plus className="h-4 w-4" />
-            Log Attendance
+          <div className="flex items-end gap-3 rounded-md border bg-muted/30 px-3 py-2">
+            <div className="flex flex-col gap-1 min-w-0">
+              <Label htmlFor="att-filter-from" className="text-xs text-muted-foreground whitespace-nowrap">From</Label>
+              <Input
+                id="att-filter-from"
+                type="date"
+                aria-label="Filter from date"
+                className="h-9 w-[132px] [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-1 min-w-0">
+              <Label htmlFor="att-filter-to" className="text-xs text-muted-foreground whitespace-nowrap">To</Label>
+              <Input
+                id="att-filter-to"
+                type="date"
+                aria-label="Filter to date"
+                className="h-9 w-[132px] [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+              />
+            </div>
+          </div>
+          <Button onClick={() => setShowForm(!showForm)} size="sm" className="h-9 shrink-0 gap-1.5 px-3 text-xs">
+            <Plus className="h-3.5 w-3.5" />
+            Log
           </Button>
         </div>
       </div>
@@ -137,7 +148,7 @@ export default function AttendanceSection() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="att-date">Date</Label>
-                <Input id="att-date" type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} />
+                <Input id="att-date" type="date" className="[&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} />
               </div>
               <div className="space-y-2">
                 <Label>Status</Label>
